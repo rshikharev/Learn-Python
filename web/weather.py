@@ -11,15 +11,20 @@ def weather_by_city(city_name: str):
         'lang': 'ru'
     }
 
-    result = requests.get(weather_url, params=params)
-    weather = result.json()
+    try:
+        result = requests.get(weather_url, params=params)
+        result.raise_for_status()
+        weather = result.json()
 
-    if 'data' in weather:
-        if 'current_condition' in weather['data']:
-            try:
-                return weather['data']['current_condition'][0]
-            except IndexError:
-                return False
+        if 'data' in weather:
+            if 'current_condition' in weather['data']:
+                try:
+                    return weather['data']['current_condition'][0]
+                except IndexError: 
+                    return False
+    except(requests.RequestException, ValueError):
+        print('Connection error')
+        return False
     return False
 
 if __name__ == "__main__":

@@ -1,5 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime
+
+from webapp.model import db, News
 
 def get_html(url):
     try:
@@ -20,19 +23,32 @@ def get_python_news():
             title = news.find('a').text
             url = news.find('a')['href']
             published = news.find('time').text
-            result_news.append({
-                'title': title,
-                'url': url,
-                'published': published,
-            })
-        return result_news
-    else:
-        return False
+            try:
+                repl = {
+                    'Jan. ': '01-',
+                    'Feb. ': '02-',
+                    'Mar. ': '03',
+                    'Apr. ': '04-',
+                    'May ': '05-',
+                    'Jun. ': '06-',
+                    'Jul. ': '07-',
+                    'Aug. ': '08-',
+                    'Sep. ': '09-',
+                    'Oct. ': '10-',
+                    'Nov. ': '11-',
+                    'Dec. ': '12-',
+                    ', ': '-',
+                }
+                for i, j in repl.iteritems():
+                    published = published.replace(i, j)
+                published = datetime.strftime(published, format="%m-%-d-%Y")
+            except:
+                published = datetime.now()
+            save_news(title, url, published)
     
-if __name__ == '__main__':
-    html = get_html('https://www.python.org/blogs/')
-    if html:
-        # with open('python_org.html', 'w', encoding='utf-8') as f:
-        #     f.write(html)
-        news = get_python_news(html)
-        print(news)
+def save_news(title, url, published):
+    news_exists = News.query.filter(News.url == url).count()
+    if not news_exists:
+        new_news = News(title=title, url=url, published=published)
+        db.session.add(new_news)
+        db.session.commit()

@@ -1,7 +1,8 @@
-*.log
+bot.log
 .vscode/
 .idea/
-env/
+venvs/
 .DS_Store
 __pycache__/
-config.ini
+config.py
+*.db
